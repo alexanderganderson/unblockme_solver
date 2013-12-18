@@ -15,8 +15,7 @@ Solver::Solver() {
     Node n_start = Node();
     L_X = 6;
     L_Y = 6;
-    n_h = 7;
-    n_v = 4;
+
     CBoard & start = n_start.cb;
     start.add_bl_h(1,2,2);
     start.add_bl_h(0,3,2);
@@ -34,13 +33,15 @@ Solver::Solver() {
     EBoard::intialize_static(L_X, L_Y);
     end_index = -1;
     
+    // Add start to data structures
     nodes.push_back(n_start);
-    
     visited_boards[start]=0;
     
 }
 
 void Solver::run() {
+    // Iterate through the boards until we find the solution or explore
+    //  all boards.
     int i = 0;
     while (i < nodes.size()) {
         search_children(i);
@@ -48,7 +49,7 @@ void Solver::run() {
             break;
         ++i;
     }
-    
+    // Backtrace to get the solution
     vector<int> solution;
     int j = end_index;
     while (nodes[j].parents.size() != 0) {
@@ -56,18 +57,19 @@ void Solver::run() {
         j = nodes[j].parents[0];
     }
     solution.push_back(0);
+    
+    // Print the sequence of boards of the solution
     for (vector<int>::reverse_iterator i = solution.rbegin(); i != solution.rend(); ++i) {
-        //        cout << *i << " ";
         EBoard(nodes[*i].cb).print();
     }
     cout << endl;
     
 }
 
-/* create_child - first checks if the child is in the map, returns 1 if child added, 0 if already there
- loc - locations of up left corner of block
- block_sizes - lengths of the blocks
- offset - gives the amount to change each location
+/* create_child - Creates child of nodes[parent_index] where block of type
+    type and index block is moved by change (= +1 or -1)
+    If the game hasn't been visited yet, make a node for it and update
+    the relevant parent/child references.
  */
 void Solver::create_child(int parent_index, int block, int change, char type) {
     //create the indices for the new board
@@ -92,12 +94,15 @@ void Solver::create_child(int parent_index, int block, int change, char type) {
     }
 }
 
-
+/*
+ Finds children of nodes[current_index]
+ */
 void Solver::search_children(int current_index){
     Node& n = nodes[current_index];
     CBoard c = n.cb;
     EBoard e = EBoard(c);
-    //e.print();
+    //Checks if each block can be moved left/right or up/down and then
+    //  creates that node. 
     for(int i = 0; i < c.bl_h.size(); ++i) {
         int x = c.bl_h[i].first;
         int y = c.bl_h[i].second;

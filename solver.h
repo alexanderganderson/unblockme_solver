@@ -67,7 +67,14 @@
     structures. Set i = 0.
  2. For the ith game state, try to move each block 1 space up/down or
     left/right
- 3. For
+ 3. For each of these game states, check if they have been visted
+        CBoardMap facilitates this check in O(lg(n_boards)) time
+ 4. If a game state is new, push_back a node for that state, and
+    add necessary parent/child references
+ 5. Increase i, and go back to 2
+ 6. The algorithm stops when block 0 reaches the right
+ 
+ The solution is found by backtracing through the graph.
  
  */
 
@@ -81,6 +88,8 @@
 #include "e_board.h"
 #include <map>
 
+// User defined comparator for CBoards that allows them to be stored
+//  efficiently in a map (look up and insertion in O(lg(Map.size()))
 struct CBoardCompare {
     bool operator()(const CBoard& c1, const CBoard& c2) const {
         for (int i = 0; i < c1.bl_h.size(); ++i) {
@@ -94,7 +103,8 @@ struct CBoardCompare {
         return false;
     }
 };
-
+// Map: key = CBoard c, value = location of c in memory (i.e.
+// vector<Node> nodes
 typedef std::map <CBoard, int, CBoardCompare> CBoardMap;
 
 class Solver {
@@ -103,19 +113,30 @@ public:
     const char v = 1;
     int L_X;
     int L_Y;
-    int n_h;  //number of horizontal blocks
-    int n_v;  //number of vertical blocks
-    //int* block_sizes_h;
-    //int* block_sizes_v;
+    // Ordered Map that contains (key,val) = (CBoard, location in nodes)
     CBoardMap visited_boards;
-    std::vector<Node> nodes;
+    // Vector containting Nodes - Node has CBoard and memory locations
+    //  of parents and children of that node
+    vector<Node> nodes;
+    // Index of the end state
     int end_index;
     
-    //constructor
+    // Initializes First Node
     Solver();
-    void create_child(int, int, int, char);
-    void search_children(int);
+    
+    // Runs algorithm
     void run();
+    
+    // Finds the children of nodes[current_index], and calls
+    //  create_child to make them
+    void search_children(int current_index);
+    
+    // Creates a child node of a parent node = nodes[parent_index]
+    //  child's CBoard is the same as the parents except the block
+    //  of type (0=h, 1=v),
+    void create_child(int parent_index, int block, int change, char type);
+    
+    
     
     
 };
